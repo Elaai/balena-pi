@@ -11,6 +11,8 @@ VOLUME_DOWN_GPIO=$(</usr/src/volume_down_gpio)
 
 SYSTEM_OUTPUT_VOLUME=$(</usr/src/system_output_volume)
 
+TIMER="0"
+
 # Set up + volume
 if [[ ! -d /sys/class/gpio/gpio$VOLUME_UP_GPIO ]]; then
   echo "$VOLUME_UP_GPIO" > /sys/class/gpio/export
@@ -41,13 +43,23 @@ MAC="$(cat /var/cache/bluetooth/reconnect_device)"
 MAC_PARSED="$(echo ${MAC//:/_})"
 
 # Volume up
-if [[ "$(cat /sys/class/gpio/gpio$$VOLUME_UP_GPIO/value)" == 1 ]]; then
+if [[ "$(cat /sys/class/gpio/gpio$VOLUME_UP_GPIO/value)" == 1 ]]; then
   amixer -D bluealsa sset "$DEVICE" 10%+
   sleep 0.5
 fi
 
-# Here comes later the code for bluetooth
-dbus-send --system --dest=org.bluez --print-reply /org/bluez/hci0/dev_$MAC_PARSED org.bluez.MediaControl1.Play > /dev/null
+while "$(cat /sys/class/gpio/gpio$BLUETOOTH_GPIO/value)" == 1 ; do
+if [[ "$TIMER" < 3 ]]; then
+
+TIMER=$($TIMER++)
+sleep 0.5
+
+else
+#dbussend --system --dest=org.bluez --print-reply /org/bluez/hci0/dev_$MAC_PARSED org.bluez.MediaControl1.Play > /dev/null
+fi
+done
+
+TIMER="0"
 
 # Volume down
 if [[ "$(cat /sys/class/gpio/gpio$VOLUME_DOWN_GPIO/value)" == 1 ]]; then
