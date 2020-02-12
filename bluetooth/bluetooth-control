@@ -3,28 +3,34 @@
 # Set up variables
 BUTTON_VOLUME=$(</usr/src/button_volume)
 
+VOLUME_UP_GPIO=$(</usr/src/volume_up_gpio)
+
+BLUETOOTH_GPIO=$(</usr/src/bluetooth_gpio)
+
+VOLUME_DOWN_GPIO=$(</usr/src/volume_down_gpio)
+
 SYSTEM_OUTPUT_VOLUME=$(</usr/src/system_output_volume)
 
-# Set up GPIO 17 (+ volume)
-if [[ ! -d /sys/class/gpio/gpio17 ]]; then
-  echo "17" > /sys/class/gpio/export
+# Set up + volume
+if [[ ! -d /sys/class/gpio/gpio$VOLUME_UP_GPIO ]]; then
+  echo "$VOLUME_UP_GPIO" > /sys/class/gpio/export
   sleep 1 
 fi
-echo "in" > /sys/class/gpio/gpio17/direction
+echo "in" > /sys/class/gpio/gpio$VOLUME_UP_GPIO/direction
 
-# Set up GPIO 27 (bluetooth)
-if [[ ! -d /sys/class/gpio/gpio27 ]]; then
-  echo "27" > /sys/class/gpio/export
+# Set up bluetooth
+if [[ ! -d /sys/class/gpio/gpio$BLUETOOTH_GPIO ]]; then
+  echo "$BLUETOOTH_GPIO" > /sys/class/gpio/export
   sleep 1 
 fi
-echo "in" > /sys/class/gpio/gpio27/direction
+echo "in" > /sys/class/gpio/gpio$BLUETOOTH_GPIO/direction
 
-# Set up GPIO 22 (- volume)
-if [[ ! -d /sys/class/gpio/gpio22 ]]; then
-  echo "22" > /sys/class/gpio/export
+# Set up - volume
+if [[ ! -d /sys/class/gpio/gpio$BLUETOOTH_GPIO ]]; then
+  echo "$BLUETOOTH_GPIO" > /sys/class/gpio/export
   sleep 1 
 fi
-echo "in" > /sys/class/gpio/gpio22/direction
+echo "in" > /sys/class/gpio/gpio$BLUETOOTH_GPIO/direction
 
 while : ; do
 
@@ -35,7 +41,7 @@ MAC="$(cat /var/cache/bluetooth/reconnect_device)"
 MAC_PARSED="$(echo ${MAC//:/_})"
 
 # Volume up
-if [[ "$(cat /sys/class/gpio/gpio17/value)" == 1 ]]; then
+if [[ "$(cat /sys/class/gpio/gpio$$VOLUME_UP_GPIO/value)" == 1 ]]; then
   amixer -D bluealsa sset "$DEVICE" 10%+
   sleep 0.5
 fi
@@ -44,7 +50,7 @@ fi
 dbus-send --system --dest=org.bluez --print-reply /org/bluez/hci0/dev_$MAC_PARSED org.bluez.MediaControl1.Play > /dev/null
 
 # Volume down
-if [[ "$(cat /sys/class/gpio/gpio22/value)" == 1 ]]; then
+if [[ "$(cat /sys/class/gpio/gpio$VOLUME_DOWN_GPIO/value)" == 1 ]]; then
   amixer -D bluealsa sset "$DEVICE" 10%-
   sleep 0.5
 fi
