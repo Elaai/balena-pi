@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# Set up variables
+BUTTON_VOLUME=$(</usr/src/button_volume)
+
+SYSTEM_OUTPUT_VOLUME=$(</usr/src/system_output_volume)
+
+# Set up GPIO 17 (+ volume)
+if [[ ! -d /sys/class/gpio/gpio17 ]]; then
+  echo "17" > /sys/class/gpio/export
+  sleep 1 
+fi
+echo "in" > /sys/class/gpio/gpio17/direction
+
+# Set up GPIO 27 (bluetooth)
+if [[ ! -d /sys/class/gpio/gpio27 ]]; then
+  echo "27" > /sys/class/gpio/export
+  sleep 1 
+fi
+echo "in" > /sys/class/gpio/gpio27/direction
+
+# Set up GPIO 22 (- volume)
+if [[ ! -d /sys/class/gpio/gpio22 ]]; then
+  echo "22" > /sys/class/gpio/export
+  sleep 1 
+fi
+echo "in" > /sys/class/gpio/gpio22/direction
+
+while : ; do
+
+if [[ ! -z "$(echo "$(amixer -D bluealsa scontrols)" | sed -n " s,[^']*'\([^']*\).*,\1,p ")" ]]; then
+
+DEVICE="$(echo "$(amixer -D bluealsa scontrols)" | sed -n " s,[^']*'\([^']*\).*,\1,p ")"
+MAC="$(cat /var/cache/bluetooth/reconnect_device)"
+MAC_PARSED="$(echo ${MAC//:/_})"
+
+# Volume up
+if [[ "$(cat /sys/class/gpio/gpio17/value)" == 1 ]]; then
+  amixer -D bluealsa sset "$DEVICE" 10%+
+  sleep 0.5
+fi
+
+# Here comes later the code for bluetooth
+dbus-send --system --dest=org.bluez --print-reply /org/bluez/hci0/dev_$MAC_PARSED org.bluez.MediaControl1.Play > /dev/null
+
+# Volume down
+if [[ "$(cat /sys/class/gpio/gpio22/value)" == 1 ]]; then
+  amixer -D bluealsa sset "$DEVICE" 10%-
+  sleep 0.5
+fi
+
+fi
+
+done

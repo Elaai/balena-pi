@@ -38,7 +38,7 @@ fi
 
 sleep 2
 rm -rf /var/run/bluealsa/
-/usr/bin/bluealsa -i hci0 -p a2dp-sink &
+/usr/bin/bluealsa -i hci0 -p a2dp-sink --a2dp-volume &
 
 hciconfig hci1 down > /dev/null 2>&1 # Disable onboard bluetooth if using a bluetooth dongle (onboard interface gets remapped to hci1) 
 hciconfig hci0 up
@@ -60,6 +60,11 @@ if [ -f "/var/cache/bluetooth/reconnect_device" ]; then
   printf "connect %s\nexit\n" "$TRUSTED_MAC_ADDRESS" | bluetoothctl > /dev/null
 fi
 
+# Start gpio bluetooth control service
+if [[ -z "$DISABLE_BLUETOOTH_CONTROL" ]]; then
+  bash /usr/src/bluetooth-control &
+fi
+
 sleep 2
 printf "Device is discoverable as \"%s\"\n" "$BLUETOOTH_DEVICE_NAME"
-exec /usr/bin/bluealsa-aplay --pcm-buffer-time=1000000 00:00:00:00:00:00
+exec /usr/bin/bluealsa-aplay --profile-a2dp 00:00:00:00:00:00
