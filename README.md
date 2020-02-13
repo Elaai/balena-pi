@@ -98,9 +98,9 @@ balenaSound allows you to control your mobile over bluetooth (Volume up/down) an
 
 ![GPIO Pins](images/gpio-pins.png)
 
-GPIO17= Volume up
-GPIO27= Bluetooth discovery
-GPIO22= Volume down
+* GPIO17= Volume up
+* GPIO27= Bluetooth discovery
+* GPIO22= Volume down
 
 ### Bluetooth scripts
 
