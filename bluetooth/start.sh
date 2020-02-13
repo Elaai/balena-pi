@@ -42,7 +42,7 @@ rm -rf /var/run/bluealsa/
 
 hciconfig hci1 down > /dev/null 2>&1 # Disable onboard bluetooth if using a bluetooth dongle (onboard interface gets remapped to hci1) 
 
-if [[ ! -z "$DISABLE_AUTO_DISCOVERY" ]]; then
+if [[ -z "$DISABLE_AUTO_DISCOVERY" ]]; then
   hciconfig hci0 up
 fi
 
